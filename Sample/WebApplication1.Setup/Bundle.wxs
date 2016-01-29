@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?include ..\WebApplication1.MSI\ProductName.wxi ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
+
+  <Bundle Name="$(var.ProgramName)"
+          Version="$(var.ProgramVersion)"
+          Manufacturer="$(var.Manufacturer)"
+          HelpUrl = "$(var.HelpLink)" 
+          AboutUrl = "$(var.AboutLink)"
+          UpgradeCode="fddd056a-e260-4759-8fb3-9a356d1cbfe3">
+
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+      <bal:WixStandardBootstrapperApplication
+        LicenseUrl=""
+        SuppressOptionsUI="yes"/>
+    </BootstrapperApplicationRef>
+
+    <!-- we have 2016 -->
+    <bal:Condition Message="64bit Operating System is Required.">
+      VersionNT64
+    </bal:Condition>
+    
+    <util:RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Value="MajorVersion" Variable="IISMAJORVERSION" />
+    <util:RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Value="MinorVersion" Variable="IISMINORVERSION" />
+    
+    <bal:Condition Message="You must install Microsoft Internet Information Server 8.0 or higher.">
+      <![CDATA[Installed OR (IISMAJORVERSION >= "#8" OR IISMAJORVERSION >= "#10")]]>
+    </bal:Condition>
+
+    <!-- check if httpplatformhandler is already installed -->
+    <util:RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\IIS Extensions\HTTP Platform Handler"
+                         Value="Version"
+                         Variable="NeedHttpPlatformHandler" Result="exists" />
+
+    <Chain>
+      <!-- install the httpplatformhandler and prevent from uninstalling -->
+      <MsiPackage Permanent="yes"
+                  Visible="yes"
+                  SourceFile="httpPlatformHandler_amd64.msi"
+                  InstallCondition="NOT NeedHttpPlatformHandler" />
+
+      <MsiPackage DisplayInternalUI="yes"
+                  SourceFile="$(var.WebApplication1.MSI.TargetDir)WebApplication1.msi" />
+    </Chain>
+  
+  </Bundle>
+</Wix>

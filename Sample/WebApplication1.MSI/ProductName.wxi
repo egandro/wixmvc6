@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <?define ProductUpgradeCode = "{65BEA10C-9310-4F1C-99D2-AA8C9247FC7D}" ?>
+  <?define ProgramName = "WebApplication1" ?>
+  <?define ProgramVersion = "1.0.0.0" ?>
+
+  <!-- this file in the [INSTALLDIR] -->
+  <?define AppSettingsFile = "approot\packages\WebApplication1\1.0.0\root\appsettings.json" ?>
+
+  <?define ProgramDir = "WebApplication1" ?>
+  <!-- this is used as default when in VirtualDirectory installation mode-->
+  <?define VirtualDirectoryDir = "WebApplication1" ?>
+  <!-- this is used as default when create new website installation mode-->
+  <?define WebSiteName = "WebApplication1" ?>
+  <?define WebSiteDefaultPort = "8080" ?>
+
+  <?define WebApplication1PublishDir = "..\publish\WebApplication1\" ?>
+  <?define MainProductFeatureName = "WebApplication1" ?>
+  <?define MainProductComponentGroupRef = "hrv_WebApplication1_Project" ?>
+
+  <?define Manufacturer = "Example Manufacturer" ?>
+  <?define HelpLink = "http://www.example.com" ?>
+  <?define AboutLink = "http://www.example.com" ?>
+</Include>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?include ProductName.wxi ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <Product Id="*"
+     Name="$(var.ProgramName)"
+     Version="$(var.ProgramVersion)"
+     Manufacturer="$(var.Manufacturer)"
+     UpgradeCode="$(var.ProductUpgradeCode)"
+     Language="1033">
+
+    <Package InstallerVersion="400"
+       Compressed="yes"
+       InstallScope="perMachine" />
+
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_451_OR_LATER_INSTALLED"/>
+    <Condition Message="You must install Microsoft .NET Framework 4.5.1 or higher.">
+      <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_451_OR_LATER_INSTALLED]]>
+    </Condition>
+
+    <PropertyRef Id="IISMAJORVERSION"/>
+    <Condition Message="You must install Microsoft Internet Information Server 8.0 or higher.">
+      <![CDATA[Installed OR (IISMAJORVERSION >= "#8" OR IISMAJORVERSION >= "#10")]]>
+    </Condition>
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+
+    <Feature Id="ProductFeature"
+        Title="$(var.MainProductFeatureName)"
+        Level="1"
+        Display="hidden"
+        AllowAdvertise="no"
+        Absent="disallow">
+      <ComponentGroupRef Id="$(var.MainProductComponentGroupRef)" />
+      <ComponentRef Id="WebsiteComponent" />
+      <ComponentRef Id="VirtualDirectoryComponent" />  
+    </Feature>
+       
+    <Binary Id="IISManager" SourceFile="..\..\IISManager\bin\$(var.Configuration)\IISManager.CA.dll" />
+
+    <iis:WebSite Id="DefaultWebSite" Description="Default" SiteId="[WEBSITEVALUE]">
+      <iis:WebAddress Id="AllUnassigned" Port="80" />
+    </iis:WebSite>
+
+    <iis:WebAppPool Id="AppPool" Name="[APPPOOLVALUE]" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="INETPUB" Name="inetpub">
+        <Directory Id="BASEWWWROOT" Name="wwwroot" ComponentGuidGenerationSeed="{CADBDB10-D310-4F47-8282-7382497A74DE}">          
+          <Directory Id="INSTALLDIR" Name="$(var.ProgramDir)">
+            <Directory Id="WWWROOT" Name="wwwroot">
+
+              <Component Id="VirtualDirectoryComponent" Guid="{09A3CBA6-212C-4A51-82F9-39F5EA60E874}">
+                <Condition>
+                  <![CDATA[INSTALLATIONMODE~="virtualdirectory"]]>
+                </Condition>              
+                <CreateFolder />
+                
+                <iis:WebVirtualDir Id="VirtualDirectory" Alias="[VIRTUALDIRECTORYVALUE]" Directory="WWWROOT" 
+                                   WebSite="DefaultWebSite">
+                  <iis:WebApplication Id="WebSiteApp" Name="[VIRTUALDIRECTORYVALUE]" WebAppPool="AppPool" />
+                  <iis:WebDirProperties Id="WebSite_Properties" AnonymousAccess="yes" WindowsAuthentication="no" 
+                                        DefaultDocuments="Default.aspx" Script="yes" Read="yes" />
+                </iis:WebVirtualDir>
+              </Component>
+                       
+              <Component Id="WebsiteComponent" Guid="{B86366F2-B0D1-43AA-88D1-F4AB7A4EC5C8}">
+                <Condition>
+                  <![CDATA[INSTALLATIONMODE~="website"]]>
+                </Condition>              
+                <CreateFolder />
+                <iis:WebSite Id="WebSiteDirectory" AutoStart="yes" StartOnInstall="yes" Directory="WWWROOT"
+                             Description="[WEBSITENAMEVALUE]">
+                  <iis:WebAddress Id="WebAddress" Header="[WEBSITEHOSTNAMEVALUE]" IP="[WEBSITEIPVALUE]" Port="[WEBSITEPORTVALUE]" />
+                </iis:WebSite>
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- MS httpPlatformHandler needs this unlocked - maybe put this to the place where the handler is installed?-->
+    <CustomAction Id="UnlockSystemWebServerHandlers" Directory="INSTALLDIR" Return="asyncNoWait"
+                  ExeCommand='[WINDIR]\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/handlers"' />
+    
+    <CustomAction Id="GetIISWebSites" BinaryKey="IISManager" DllEntry="GetWebSites" Execute="immediate" Return="check" />
+    <CustomAction Id="GetAppPools" BinaryKey="IISManager" DllEntry="GetAppPools" Execute="immediate" Return="check" />
+    <CustomAction Id="JsonFileAppsettings" BinaryKey="IISManager" DllEntry="JsonFileAppsettings" Execute="immediate" Return="check" />
+
+    <!-- parameters for JsonFileAppsettings -->
+    <Property Id="JsonFileAppsettingsVirtualDirectory"
+          Value="File=$(var.AppSettingsFile);RootKey=Hosting;Key=VirtualDirectory;Value=[VIRTUALDIRECTORYVALUE]" />
+    <Property Id="JsonFileAppsettingsWebsite"
+              Value="File=$(var.AppSettingsFile);RootKey=Hosting;Key=VirtualDirectory" />
+    
+    <InstallUISequence>
+      <Custom Action="GetIISWebSites" After="CostFinalize" Overridable="yes">NOT Installed</Custom>
+      <Custom Action="GetAppPools" After="CostFinalize" Overridable="yes">NOT Installed</Custom>
+    </InstallUISequence>
+
+    <InstallExecuteSequence>
+      <Custom Action="UnlockSystemWebServerHandlers" After="InstallFinalize"/>
+      <Custom Action="JsonFileAppsettings" After="InstallFinalize"/>
+    </InstallExecuteSequence>
+    
+    <Property Id="WIXUI_INSTALLDIR">INSTALLDIR</Property>
+    
+    <!-- install virtual directory as default -->
+    <Property Id="INSTALLATIONMODE">virtualdirectory</Property>
+
+    <Property Id="VIRTUALDIRECTORYVALUE">$(var.VirtualDirectoryDir)</Property>
+    <Property Id="WEBSITENAMEVALUE">$(var.WebSiteName)</Property>
+    <Property Id="WEBSITEPORTVALUE">$(var.WebSiteDefaultPort)</Property>
+
+    <UIRef Id="MyCustomUI" />
+
+    <!--- I8N for texts -->
+    <UIRef Id="WixUI_ErrorProgressText" />
+
+    <Property Id="ARPHELPLINK" Value="$(var.HelpLink)" />
+    <Property Id="ARPURLINFOABOUT" Value="$(var.AboutLink)" />
+
+  </Product>
+
+</Wix>

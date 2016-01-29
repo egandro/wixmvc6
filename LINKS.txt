@@ -1,0 +1,13 @@
+﻿
+Based on code / ideas from:
+
+http://stackoverflow.com/questions/27101579/how-to-pass-parameters-to-the-custom-action
+http://docs.asp.net/en/latest/publishing/iis.html
+https://github.com/BartDM/WIXInstallerDemo
+http://www.chrissurfleet.co.uk/post/2011/06/30/simplify-deployment-with-visual-studio-and-wix.aspx
+http://stackoverflow.com/questions/30573738/wix-install-component-based-on-combobox-selection
+http://stackoverflow.com/questions/12917287/wix-burn-determine-what-items-are-already-installed
+http://serverfault.com/questions/72338/iis7-lock-violation-error-http-handlers-modules-and-the-clear-element
+http://docs.asp.net/en/latest/publishing/iis.html
+https://github.com/aspnet/Hosting/issues/416#issuecomment-149046552
+http://dotnetbyexample.blogspot.de/2010/11/wix-configurable-search-replace-custom.html

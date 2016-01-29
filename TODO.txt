@@ -1,0 +1,6 @@
+﻿TODOs:
+
+- add 64bit support (in 2016 - do wie need this? for a server?)
+- in the Bundle project add some checks if ASP.Net is enabled
+- do intensive testing win7, win8, win81, win10, server2012, server2012r2, server2016
+- download httpPlatformHandler_amd64.msi from website 
